@@ -1,0 +1,1 @@
+This is my implementation of the algorithm in "The EM/MPM Algorithm for Segmentation of Textured Images: Analysis and Further Experimental Results" by Mary Comer and Edward Delp
