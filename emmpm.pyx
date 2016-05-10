@@ -17,6 +17,9 @@ cpdef segment(image, b = 5.0):
 
     X[Y > threshold] = 1
 
+    plt.imshow(X)
+    plt.show()
+
     cdef int samples = 10
     cdef int rpts = 10
 
@@ -65,6 +68,8 @@ cpdef segment(image, b = 5.0):
 
             sig2[c] /= psum
 
+        print u, sig2
+
         T = numpy.zeros((N, N, 2)).astype('uint64')
 
         for s in range(samples):
@@ -83,17 +88,17 @@ cpdef segment(image, b = 5.0):
                     jm = 0 if j - 1 < 0 else j - 1
                     jp = j + 1 if j + 1 < N else N - 1
 
-                counts = [0, 0]
+                    counts = [0, 0]
 
-                counts[X[ip, j]] += 1
-                counts[X[im, j]] += 1
-                counts[X[i, jp]] += 1
-                counts[X[i, jm]] += 1
+                    counts[X[ip, j]] += 1
+                    counts[X[im, j]] += 1
+                    counts[X[i, jp]] += 1
+                    counts[X[i, jm]] += 1
 
-                p0 = numpy.exp(-((Y[i, j] - u[X[i, j]])**2) / (2.0 * sig2[X[i, j]]) - b * counts[1 - X[i, j]])
-                p1 = numpy.exp(-((Y[i, j] - u[1 - X[i, j]])**2) / (2.0 * sig2[1 - X[i, j]]) - b * counts[X[i, j]])
+                    p0 = numpy.exp(-((Y[i, j] - u[X[i, j]])**2) / (2.0 * sig2[X[i, j]]) - b * counts[1 - X[i, j]])
+                    p1 = numpy.exp(-((Y[i, j] - u[1 - X[i, j]])**2) / (2.0 * sig2[1 - X[i, j]]) - b * counts[X[i, j]])
 
-                p[i, j] = p0 / (p0 + p1)
+                    p[i, j] = p0 / (p0 + p1)
 
             for i in range(N):
                 for j in range(N):
@@ -102,5 +107,5 @@ cpdef segment(image, b = 5.0):
 
                     T[i, j, X[i, j]] += 1
 
-    return T[:, :, 0] / (T[:, :, 0] + T[:, :, 1])
+    return T[:, :, 1] / (T[:, :, 0] + T[:, :, 1]).astype('double')
 

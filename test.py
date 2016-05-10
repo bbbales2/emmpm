@@ -16,6 +16,11 @@ import emmpm
 
 image = skimage.io.imread('molybdenum12.png', as_grey = True) * 255.0
 
+import time
+
+tmp = time.time()
 plt.imshow(emmpm.segment(image))
+print time.time() - tmp
+plt.colorbar()
 plt.show()
 
