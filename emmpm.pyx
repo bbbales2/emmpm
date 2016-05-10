@@ -1,11 +1,12 @@
-#cython: boundscheck=False, wraparound=False, nonecheck=False
+#cython: boundscheck=False, wraparound=False, nonecheck=False, cdivision=True
 
 import numpy
 cimport numpy
+cimport libc.math
 import matplotlib.pyplot as plt
 import skimage.filters
 
-cpdef segment(image, b = 5.0):
+cpdef segment(image, double b = 5.0):
     cdef int N = image.shape[0]
 
     cdef numpy.ndarray[numpy.double_t, ndim = 2] Y = image.astype('double')
@@ -16,9 +17,6 @@ cpdef segment(image, b = 5.0):
     threshold = skimage.filters.threshold_otsu(Y)
 
     X[Y > threshold] = 1
-
-    plt.imshow(X)
-    plt.show()
 
     cdef int samples = 10
     cdef int rpts = 10
@@ -37,6 +35,9 @@ cpdef segment(image, b = 5.0):
     cdef double[2] sig2 = [0.0, 0.0]
     cdef double psum
     cdef int[2] counts
+    cdef double p0, p1
+
+    cdef numpy.ndarray[numpy.double_t, ndim = 2] randoms
 
     for r in range(rpts):
         for i in range(N):
@@ -95,14 +96,16 @@ cpdef segment(image, b = 5.0):
                     counts[X[i, jp]] += 1
                     counts[X[i, jm]] += 1
 
-                    p0 = numpy.exp(-((Y[i, j] - u[X[i, j]])**2) / (2.0 * sig2[X[i, j]]) - b * counts[1 - X[i, j]])
-                    p1 = numpy.exp(-((Y[i, j] - u[1 - X[i, j]])**2) / (2.0 * sig2[1 - X[i, j]]) - b * counts[X[i, j]])
+                    p0 = libc.math.exp(-((Y[i, j] - u[X[i, j]])**2) / (2.0 * sig2[X[i, j]]) - b * counts[1 - X[i, j]])
+                    p1 = libc.math.exp(-((Y[i, j] - u[1 - X[i, j]])**2) / (2.0 * sig2[1 - X[i, j]]) - b * counts[X[i, j]])
 
                     p[i, j] = p0 / (p0 + p1)
 
+            randoms = numpy.random.rand(N, N)
+
             for i in range(N):
                 for j in range(N):
-                    if numpy.random.random() > p[i, j]:
+                    if randoms[i, j] > p[i, j]:
                         X[i, j] = 1 - X[i, j]
 
                     T[i, j, X[i, j]] += 1
